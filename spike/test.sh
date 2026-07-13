@@ -52,6 +52,19 @@ check ".pagedata is non-empty" test -s "$XOCHITL_DIR/$RM_UUID.pagedata"
 [ "$(cat "$OUT_DIR/counter")" = "1" ] \
     && pass "generation counter is 1" || fail "generation counter is 1"
 
+echo "== backup (fake mode) =="
+export BACKUP_DIR="$work/backups"
+"$spike_dir/backup.sh" >/dev/null
+bdir="$(find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
+check "timestamped backup dir created" test -n "$bdir"
+for ext in pdf metadata content pagedata; do
+    check "backup contains $RM_UUID.$ext" test -f "$bdir/xochitl/$RM_UUID.$ext"
+done
+check "backup version stamp written" test -s "$bdir/version.txt"
+check "backup firmware stamp written" test -s "$bdir/firmware.txt"
+cmp -s "$bdir/xochitl/$RM_UUID.pdf" "$XOCHITL_DIR/$RM_UUID.pdf" \
+    && pass "backup PDF is byte-identical to store" || fail "backup PDF is byte-identical to store"
+
 prev_hash="$(cksum "$XOCHITL_DIR/$RM_UUID.pdf")"
 prev_mtime="$(json_field "$XOCHITL_DIR/$RM_UUID.metadata" lastModified)"
 

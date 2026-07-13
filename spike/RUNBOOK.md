@@ -69,12 +69,32 @@ Select with `RM_HOST`, e.g. `RM_HOST=192.168.1.42 ./update.sh`. Repeat
 `ssh-copy-id` for each address you plan to use (host key differs per address,
 key auth doesn't).
 
-## 2. The live test
+## 2. Step 0: pre-flight backup (run before the first push)
+
+Once key auth works, back up the tablet's user data before touching it:
+
+```sh
+./backup.sh
+```
+
+This copies the whole `~/.local/share/remarkable/xochitl/` (all your
+documents) plus `/etc/version` and the firmware string into a timestamped
+`spike/backups/<stamp>/` on your computer. It is strictly read-only on the
+device. It tries `rsync -avz` first and automatically falls back to
+tar-over-ssh, since stock firmware has no rsync binary — either way nothing
+is installed on the tablet. The captured `version.txt`/`firmware.txt` are
+also exactly what `FINDINGS.md` asks for.
+
+**Manual restore** (deliberately no script): stop xochitl, copy the backup
+back, start —
+`ssh root@10.11.99.1 'systemctl stop xochitl' && scp -O -r spike/backups/<stamp>/xochitl/. root@10.11.99.1:.local/share/remarkable/xochitl/ && ssh root@10.11.99.1 'systemctl start xochitl'`
+
+## 3. The live test
 
 All commands from the `spike/` directory. Have a stopwatch (or just count)
 for the restart blip.
 
-### 2a. Initial push
+### 3a. Initial push
 
 ```sh
 ./update.sh          # renders generation 1 and pushes it
@@ -86,7 +106,7 @@ seconds to redraw — **note the total blip duration**), then **My Files**
 shows a new document **“gv spike 0”**. Open it: page says `generation 1`
 with a render timestamp.
 
-### 2b. In-place updates (run at least 3)
+### 3b. In-place updates (run at least 3)
 
 Note the document's position in the My Files list, then:
 
@@ -114,23 +134,23 @@ Run `./update.sh` twice more. Also worth trying once: update **while the
 document is open** on the tablet — note whether xochitl reopens it, returns
 to My Files, or misbehaves.
 
-### 2c. WiFi run (optional but useful)
+### 3c. WiFi run (optional but useful)
 
 Unplug USB, then `RM_HOST=<wifi-ip> ./update.sh` — confirms the transport
 works untethered and lets you compare blip/transfer time.
 
-### 2d. Record results
+### 3d. Record results
 
 Fill in `FINDINGS.md` (firmware version, blip durations, list-position
 behavior, any quirks) and post its draft comment on issue #1.
 
-### 2e. Cleanup (optional)
+### 3e. Cleanup (optional)
 
 ```sh
 ./cleanup.sh         # removes only the dummy document, restarts xochitl
 ```
 
-## 3. What "success" looks like
+## 4. What "success" looks like
 
 - The document appears once and only once, ever, across all cycles.
 - Content refreshes in place on every `./update.sh`; identity (UUID, name,
