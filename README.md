@@ -16,6 +16,9 @@ Pre-implementation. Current work: **Spike 0** — prove the SSH transport with a
 dummy document (push a xochitl fileset, overwrite the same UUID in place, verify
 identity/position survive). Scope and acceptance criteria live in
 [grove#76's Spike 0 comment](https://github.com/JollyGrin/grove/issues/76).
+The scaffold lives in [`spike/`](spike/README.md): run `spike/test.sh`
+locally (no device), then follow [`spike/RUNBOOK.md`](spike/RUNBOOK.md) for
+the live tablet test.
 
 ## Design (from grove#76)
 
